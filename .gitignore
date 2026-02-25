@@ -1,0 +1,9 @@
+.venv/
+vevn/
+venv/
+env/
+ENV/
+__pycache__/
+*.pyc
+output/
+playwright-report/
