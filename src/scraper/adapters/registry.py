@@ -3,11 +3,15 @@ from __future__ import annotations
 from scraper.adapters.base import BaseAdapter
 from scraper.adapters.example_static import ExampleStaticAdapter
 from scraper.adapters.samaco_about import SamacoAboutAdapter
+from scraper.adapters.samaco_careers import SamacoCareersAdapter
+from scraper.adapters.samaco_contact import SamacoContactAdapter
 
 
 _ADAPTERS: dict[str, type[BaseAdapter]] = {
     ExampleStaticAdapter.name: ExampleStaticAdapter,
     SamacoAboutAdapter.name: SamacoAboutAdapter,
+    SamacoCareersAdapter.name: SamacoCareersAdapter,
+    SamacoContactAdapter.name: SamacoContactAdapter,
 }
 
 
