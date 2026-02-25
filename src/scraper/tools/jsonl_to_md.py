@@ -36,7 +36,10 @@ def group_by_page(rows: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
         payload = row.get("payload", {})
-        page_key = payload.get("page_url") or payload.get("url") or row.get("source_url")
+        if is_product_payload(payload):
+            page_key = product_group_key(payload)
+        else:
+            page_key = payload.get("page_url") or payload.get("url") or row.get("source_url")
         if not page_key:
             page_key = "unknown-page"
         grouped[str(page_key)].append(row)
@@ -54,6 +57,17 @@ def render_markdown(title: str, grouped_rows: dict[str, list[dict[str, Any]]]) -
 def render_page(page_url: str, rows: list[dict[str, Any]]) -> list[str]:
     first_payload = rows[0].get("payload", {})
     page_title = pick_page_title(first_payload)
+
+    if is_product_payload(first_payload):
+        lines = [f"## {page_title}", ""]
+        canonical_url = first_payload.get("page_url")
+        if isinstance(canonical_url, str) and canonical_url.strip():
+            lines.append(f"- URL: {canonical_url}")
+        lines.append(f"- Records: {len(rows)}")
+        lines.append(f"- Pages Covered: {product_page_span(rows)}")
+        lines.append("")
+        lines.extend(render_products(rows))
+        return lines
 
     lines = [f"## {page_title}", "", f"- URL: {page_url}", f"- Records: {len(rows)}", ""]
 
@@ -73,6 +87,9 @@ def pick_page_title(payload: dict[str, Any]) -> str:
     headings_h1 = payload.get("headings_h1")
     if isinstance(headings_h1, list) and headings_h1:
         candidates.append(headings_h1[0])
+    collection = payload.get("collection")
+    if isinstance(collection, str) and collection.strip():
+        candidates.append(f"{collection.strip().title()} Products")
 
     for value in candidates:
         if isinstance(value, str) and value.strip():
@@ -82,6 +99,79 @@ def pick_page_title(payload: dict[str, Any]) -> str:
 
 def is_location_payload(payload: dict[str, Any]) -> bool:
     return "location_name" in payload or "location_id" in payload
+
+
+def is_product_payload(payload: dict[str, Any]) -> bool:
+    return "product_name" in payload
+
+
+def render_products(rows: list[dict[str, Any]]) -> list[str]:
+    lines: list[str] = []
+    availability_counts: dict[str, int] = defaultdict(int)
+    for row in rows:
+        payload = row.get("payload", {})
+        status = str(payload.get("availability") or "Unknown")
+        availability_counts[status] += 1
+
+    lines.append("### Products")
+    lines.append("")
+    lines.append(f"- Total Products: {len(rows)}")
+    if availability_counts:
+        summary = ", ".join(
+            f"{name}: {availability_counts[name]}" for name in sorted(availability_counts)
+        )
+        lines.append(f"- Availability Summary: {summary}")
+    lines.append("")
+
+    sorted_rows = sorted(
+        rows,
+        key=lambda r: str((r.get("payload", {}).get("product_name") or "")).lower(),
+    )
+    for idx, row in enumerate(sorted_rows, start=1):
+        payload = row.get("payload", {})
+        name = payload.get("product_name") or f"Product {idx}"
+        lines.append(f"#### {name}")
+        lines.extend(
+            kv_lines(
+                [
+                    ("Product Name Tag", payload.get("product_name_tag")),
+                    ("Price", payload.get("price")),
+                    ("Availability", payload.get("availability")),
+                    ("Product URL", payload.get("product_url")),
+                    ("Page Number", payload.get("page_number")),
+                    ("Page URL", payload.get("page_url")),
+                ]
+            )
+        )
+        lines.append("")
+    return lines
+
+
+def product_group_key(payload: dict[str, Any]) -> str:
+    collection = payload.get("collection")
+    if isinstance(collection, str) and collection.strip():
+        return f"products::{collection.strip().lower()}"
+    return "products::default"
+
+
+def product_page_span(rows: list[dict[str, Any]]) -> str:
+    pages: set[int] = set()
+    for row in rows:
+        payload = row.get("payload", {})
+        value = payload.get("page_number")
+        if isinstance(value, int):
+            pages.add(value)
+            continue
+        try:
+            pages.add(int(str(value)))
+        except (TypeError, ValueError):
+            continue
+    if not pages:
+        return "Unknown"
+    ordered = sorted(pages)
+    if len(ordered) == 1:
+        return str(ordered[0])
+    return f"{ordered[0]}-{ordered[-1]} ({len(ordered)} pages)"
 
 
 def render_locations(rows: list[dict[str, Any]]) -> list[str]:
