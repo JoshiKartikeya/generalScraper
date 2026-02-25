@@ -20,10 +20,6 @@ class SamacoContactAdapter(BaseAdapter):
         "/en/contact-us/complaints",
         "/en/contact-us/complaints/",
     }
-    ignored_snippets = (
-        "Do you have a query or question?",
-        "Stay up to date with all the latest news and updates",
-    )
 
     def extract(self, fetch_result: FetchResult) -> list[ScrapeRecord]:
         tree = HTMLParser(fetch_result.html)
@@ -93,7 +89,6 @@ class SamacoContactAdapter(BaseAdapter):
         if records:
             return records
 
-        # Fallback: keep one page-level record if cards are not found.
         return [
             ScrapeRecord(
                 source_url=final_url,
@@ -120,19 +115,6 @@ class SamacoContactAdapter(BaseAdapter):
 
     def discover_links(self, fetch_result: FetchResult) -> list[str]:
         return []
-
-    def _is_allowed(self, url: str) -> bool:
-        parsed = urlparse(url)
-        if parsed.scheme not in {"http", "https"}:
-            return False
-        if parsed.netloc != self.allowed_domain:
-            return False
-        path = parsed.path.rstrip("/")
-        if not path.startswith(self.allowed_path_prefix.rstrip("/")):
-            return False
-        if path in {p.rstrip("/") for p in self.excluded_paths}:
-            return False
-        return True
 
     @staticmethod
     def _extract_contacts(tree: HTMLParser, selector: str, prefix: str) -> list[str]:

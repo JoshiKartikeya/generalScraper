@@ -127,6 +127,20 @@ Persistent dedupe is enabled by default:
 - seen record hashes are stored in `output/.state/seen_hashes.txt`
 - reruns skip already saved pages and records
 
+## Convert JSONL to Markdown (AI-friendly)
+
+Use the converter to turn raw JSONL records into structured Markdown grouped by page with headings and content blocks.
+
+```powershell
+python -m scraper.tools.jsonl_to_md --input output\scrape-1772003069.jsonl --output output\scrape-1772003069.md
+```
+
+Optional custom title:
+
+```powershell
+python -m scraper.tools.jsonl_to_md --input output\scrape-1772003069.jsonl --output output\careers.md --title "SAMACO Careers Content"
+```
+
 ## How it works internally
 
 1. CLI loads the selected adapter.
