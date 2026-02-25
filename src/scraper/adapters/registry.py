@@ -5,6 +5,7 @@ from scraper.adapters.example_static import ExampleStaticAdapter
 from scraper.adapters.samaco_about import SamacoAboutAdapter
 from scraper.adapters.samaco_careers import SamacoCareersAdapter
 from scraper.adapters.samaco_contact import SamacoContactAdapter
+from scraper.adapters.samaco_offers import SamacoOffersAdapter
 
 
 _ADAPTERS: dict[str, type[BaseAdapter]] = {
@@ -12,6 +13,7 @@ _ADAPTERS: dict[str, type[BaseAdapter]] = {
     SamacoAboutAdapter.name: SamacoAboutAdapter,
     SamacoCareersAdapter.name: SamacoCareersAdapter,
     SamacoContactAdapter.name: SamacoContactAdapter,
+    SamacoOffersAdapter.name: SamacoOffersAdapter,
 }
 
 
