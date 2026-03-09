@@ -47,16 +47,11 @@ class ScrapeRunner:
             queued.discard(normalized_current)
             if normalized_current in visited:
                 continue
-            if self.config.persistent_dedupe and self.dedupe.has_seen_url(normalized_current):
-                visited.add(normalized_current)
-                continue
 
             fetch_result = self._fetch_with_fallback(adapter, current_url, request.engine)
             if first_engine_used is None:
                 first_engine_used = fetch_result.engine_used
             visited.add(normalized_current)
-            if self.config.persistent_dedupe:
-                self.dedupe.mark_url_seen(normalized_current)
             all_records.extend(adapter.extract(fetch_result))
 
             for next_url in adapter.discover_links(fetch_result):

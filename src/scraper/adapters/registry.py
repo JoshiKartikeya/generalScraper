@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from scraper.adapters.base import BaseAdapter
 from scraper.adapters.example_static import ExampleStaticAdapter
+from scraper.adapters.iga_service_info import IgaServiceInfoAdapter
 from scraper.adapters.samaco_about import SamacoAboutAdapter
 
 
 _ADAPTERS: dict[str, type[BaseAdapter]] = {
     ExampleStaticAdapter.name: ExampleStaticAdapter,
+    IgaServiceInfoAdapter.name: IgaServiceInfoAdapter,
     SamacoAboutAdapter.name: SamacoAboutAdapter,
 }
 
